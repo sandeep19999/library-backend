@@ -1,5 +1,7 @@
 package com.example.library.config;
 
+import com.example.library.exception.ResourceAlreadyExistsException;
+import com.example.library.security.CustomAccessDeniedHandler;
 import com.example.library.security.JwtAuthenticationFilter;
 import com.example.library.security.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -30,6 +33,7 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final AuthenticationProvider authenticationProvider;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
     
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
@@ -69,6 +73,7 @@ public class SecurityConfig {
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, 
                         "Unauthorized: " + (authException != null ? authException.getMessage() : "Authentication required"));
                 })
+                .accessDeniedHandler(accessDeniedHandler)
             )
             // Configure session management
             .sessionManagement(session -> session
