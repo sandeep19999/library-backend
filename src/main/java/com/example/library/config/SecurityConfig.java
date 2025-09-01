@@ -49,26 +49,60 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             // Configure authorization
             .authorizeHttpRequests(auth -> {
-                // Permit all HTTP methods on book endpoints
+                // Public endpoints
                 auth.requestMatchers(
                     "/auth/register",
                     "/auth/login"
                 ).permitAll()
-                // Permit Swagger documentation
+                
+                // Swagger documentation
                 .requestMatchers(
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
-                    "/swagger-ui.html"
+                    "/swagger-ui.html",
+                    "/swagger-ui/index.html",
+                    "/swagger-resources/**",
+                    "/webjars/**"
                 ).permitAll()
+                
+                // Book endpoints - only for authenticated users
+                .requestMatchers(HttpMethod.GET, "/books").permitAll()
+                .requestMatchers(HttpMethod.GET, "/books/**").permitAll()
+                
+                // Book management endpoints - only for LIBRARIAN and ADMIN
+                .requestMatchers(HttpMethod.POST, "/books").hasAnyRole("LIBRARIAN", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/books/**").hasAnyRole("LIBRARIAN", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/books/**").hasAnyRole("LIBRARIAN", "ADMIN")
+                
+                // Admin endpoints - only for ADMIN
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                
+                // All other requests require authentication
                 .anyRequest().authenticated();
             })
             // Configure exception handling
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) -> {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, 
-                        "Unauthorized: " + (authException != null ? authException.getMessage() : "Authentication required"));
+                    response.setContentType("application/json");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write(
+                        String.format(
+                            "{\"status\": 401, \"error\": \"Unauthorized\", \"message\": \"%s\"}",
+                            authException != null ? authException.getMessage() : "Authentication required"
+                        )
+                    );
                 })
-                .accessDeniedHandler(accessDeniedHandler)
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setContentType("application/json");
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.getWriter().write(
+                        String.format(
+                            "{\"status\": 403, \"error\": \"Forbidden\", \"message\": \"%s\"}",
+                            accessDeniedException.getMessage() != null ? 
+                                accessDeniedException.getMessage() : "Access Denied"
+                        )
+                    );
+                })
             )
             // Configure session management
             .sessionManagement(session -> session

@@ -40,9 +40,15 @@ public class JwtService {
             Map<String, Object> extraClaims,
             UserDetails userDetails
     ) {
+        // Add roles to the claims
+        Map<String, Object> claims = new HashMap<>(extraClaims);
+        claims.put("roles", userDetails.getAuthorities().stream()
+                .map(Object::toString)
+                .collect(java.util.stream.Collectors.toList()));
+                
         return Jwts
                 .builder()
-                .setClaims(extraClaims)
+                .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration * 1000))
