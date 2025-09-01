@@ -90,10 +90,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         System.out.println("Checking if endpoint is public: " + requestURI);
         
         // Allow all book endpoints
-        if (requestURI.startsWith("/api/books")) {
-            System.out.println("Allowing access to book endpoint: " + requestURI);
-            return true;
-        }
+//        if (requestURI.startsWith("/api/books")) {
+//            System.out.println("Allowing access to book endpoint: " + requestURI);
+//            return true;
+//        }
         
         // Allow auth and Swagger endpoints
         boolean isPublic = requestURI.startsWith("/api/auth/") ||

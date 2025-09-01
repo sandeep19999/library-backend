@@ -51,11 +51,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> {
                 // Permit all HTTP methods on book endpoints
                 auth.requestMatchers(
-                    "/api/books",
-                    "/api/books/**"
-                ).permitAll()
-                // Permit authentication endpoints
-                .requestMatchers(
                     "/auth/register",
                     "/auth/login"
                 ).permitAll()
